@@ -1,16 +1,11 @@
 # -*- encoding : utf-8 -*-
-
-require "blocker/version"
-
 class Blocker
-  DEFAULT_LOCK_TIME = 12.hour
-  KEY_PREFIX = "#{Conf.redis['namespace'] || ''}:blocker"
 
   class AccessShareError < StandardError
   end
 
   class << self
-    def lock(name, max_lock_time = DEFAULT_LOCK_TIME, &block)
+    def lock(name, max_lock_time = default_lock_time, &block)
       raise AccessShareError, "Lock already installed for resource name `#{name}`" if locked?(name)
 
       _name = key(name)
@@ -78,7 +73,15 @@ class Blocker
     end
 
     def key(name)
-      "#{KEY_PREFIX}:#{name}"
+      "#{key_prefix}:#{name}"
+    end
+
+    def key_prefix
+      @key_prefix ||= "#{Conf.redis['namespace'] || ''}:blocker"
+    end
+
+    def default_lock_time
+      12.hours
     end
   end
 
